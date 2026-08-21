@@ -16,6 +16,19 @@ type Client struct {
 	token   string
 }
 
+// UpstreamError captures the HTTP status code returned by a downstream
+// service so callers can propagate domain-specific statuses (e.g. 404).
+type UpstreamError struct {
+	StatusCode int
+	Method     string
+	Path       string
+	Body       string
+}
+
+func (e *UpstreamError) Error() string {
+	return fmt.Sprintf("%s %s returned %d: %s", e.Method, e.Path, e.StatusCode, e.Body)
+}
+
 // New creates a Client pointing to baseURL with an optional internal auth token.
 func New(baseURL, token string) *Client {
 	r := resty.New().
@@ -38,7 +51,7 @@ func (c *Client) Get(ctx context.Context, path string, out any) (*http.Response,
 		return nil, err
 	}
 	if resp.IsError() {
-		return resp.RawResponse, fmt.Errorf("GET %s returned %d: %s", path, resp.StatusCode(), string(resp.Body()))
+		return resp.RawResponse, &UpstreamError{StatusCode: resp.StatusCode(), Method: http.MethodGet, Path: path, Body: string(resp.Body())}
 	}
 	return resp.RawResponse, nil
 }
@@ -50,7 +63,7 @@ func (c *Client) GetQuery(ctx context.Context, path string, query map[string]str
 		return nil, err
 	}
 	if resp.IsError() {
-		return resp.RawResponse, fmt.Errorf("GET %s returned %d: %s", path, resp.StatusCode(), string(resp.Body()))
+		return resp.RawResponse, &UpstreamError{StatusCode: resp.StatusCode(), Method: http.MethodGet, Path: path, Body: string(resp.Body())}
 	}
 	return resp.RawResponse, nil
 }
@@ -62,7 +75,7 @@ func (c *Client) Post(ctx context.Context, path string, body, out any) (*http.Re
 		return nil, err
 	}
 	if resp.IsError() {
-		return resp.RawResponse, fmt.Errorf("POST %s returned %d: %s", path, resp.StatusCode(), string(resp.Body()))
+		return resp.RawResponse, &UpstreamError{StatusCode: resp.StatusCode(), Method: http.MethodPost, Path: path, Body: string(resp.Body())}
 	}
 	return resp.RawResponse, nil
 }

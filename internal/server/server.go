@@ -8,8 +8,10 @@ import (
 	"time"
 
 	"bff-finalproj/internal/handlers"
+	"bff-finalproj/internal/prometheus"
 
 	"github.com/gin-gonic/gin"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 func requestLogger() gin.HandlerFunc {
@@ -30,15 +32,17 @@ func New(h *handlers.Handler) http.Handler {
 	router := gin.New()
 	router.Use(gin.Recovery())
 	router.Use(requestLogger())
+	router.Use(prometheus.MetricsMiddleware())
 
 	router.GET("/health", h.Health)
+	router.GET("/metrics", gin.WrapH(promhttp.Handler()))
 
 	api := router.Group("/api")
 	v1 := api.Group("/v1")
 	v1.GET("/bff/adverts/:id", h.GetAdvertFull)
 	v1.GET("/bff/orders/:id", h.GetOrderFull)
 	v1.GET("/bff/users/:id/cabinet", h.GetUserCabinet)
-
+	
 	return router
 }
 

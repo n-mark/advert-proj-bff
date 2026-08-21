@@ -1,9 +1,11 @@
 package handlers
 
 import (
+	"errors"
 	"log/slog"
 	"net/http"
 
+	"bff-finalproj/internal/clients"
 	"bff-finalproj/internal/service"
 
 	"github.com/gin-gonic/gin"
@@ -29,8 +31,7 @@ func (h *Handler) GetAdvertFull(c *gin.Context) {
 
 	out, err := h.bff.GetAdvertFull(c.Request.Context(), id)
 	if err != nil {
-		slog.Error("GetAdvertFull failed", "error", err)
-		c.JSON(http.StatusBadGateway, gin.H{"error": err.Error()})
+		writeBFFError(c, err)
 		return
 	}
 	c.JSON(http.StatusOK, out)
@@ -46,8 +47,7 @@ func (h *Handler) GetOrderFull(c *gin.Context) {
 
 	out, err := h.bff.GetOrderFull(c.Request.Context(), id)
 	if err != nil {
-		slog.Error("GetOrderFull failed", "error", err)
-		c.JSON(http.StatusBadGateway, gin.H{"error": err.Error()})
+		writeBFFError(c, err)
 		return
 	}
 	c.JSON(http.StatusOK, out)
@@ -63,8 +63,7 @@ func (h *Handler) GetUserCabinet(c *gin.Context) {
 
 	out, err := h.bff.GetUserCabinet(c.Request.Context(), id)
 	if err != nil {
-		slog.Error("GetUserCabinet failed", "error", err)
-		c.JSON(http.StatusBadGateway, gin.H{"error": err.Error()})
+		writeBFFError(c, err)
 		return
 	}
 	c.JSON(http.StatusOK, out)
@@ -73,4 +72,17 @@ func (h *Handler) GetUserCabinet(c *gin.Context) {
 // Health returns 200 OK.
 func (h *Handler) Health(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"status": "ok"})
+}
+
+// writeBFFError maps downstream failures to a proper HTTP status: a 404 from
+// an upstream service is propagated as 404, everything else becomes 502.
+func writeBFFError(c *gin.Context, err error) {
+	slog.Error("bff request failed", "error", err)
+
+	var upstream *clients.UpstreamError
+	if errors.As(err, &upstream) && upstream.StatusCode == http.StatusNotFound {
+		c.JSON(http.StatusNotFound, gin.H{"error": "not found"})
+		return
+	}
+	c.JSON(http.StatusBadGateway, gin.H{"error": err.Error()})
 }
