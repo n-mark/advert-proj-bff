@@ -1,6 +1,6 @@
 # BFF (Backend for Frontend)
 
-BFF-сервис для маркетплейса объявлений (финальный проект). Агрегирует данные из всех микросервисов в единый API для фронтенда. Написан на Go.
+BFF-сервис для интернет-сервиса по размещению объявлений (финальный проект). Агрегирует данные из всех микросервисов в единый API для фронтенда. Написан на Go.
 
 - **GitHub:** https://github.com/n-mark/advert-proj-bff
 - **DockerHub:** [`mblkuta/advert-proj-bff`](https://hub.docker.com/r/mblkuta/advert-proj-bff)
@@ -29,7 +29,7 @@ internal/      # обработчики, клиенты к downstream-серви
 | `APP_PORT` | Порт HTTP-сервера | `8080` |
 | `AUTH_URL` | URL сервиса аутентификации | `http://auth-service:8080` |
 | `PROFILE_URL` | URL сервиса профилей | `http://profile-service:8080` |
-| `ADVERT_CMD_URL` | URL сервиса команд объявлений | `http://advert-cmd-svc:8080` |
+| `ADVERT_CMD_URL` | URL command-сервиса | `http://advert-cmd-svc:8080` |
 | `ADVERT_QUERY_URL` | URL сервиса поиска | `http://advert-query:8080` |
 | `ORDER_URL` | URL сервиса заказов | `http://order-service:8080` |
 | `BILLING_URL` | URL сервиса биллинга | `http://billing-service:8080` |
